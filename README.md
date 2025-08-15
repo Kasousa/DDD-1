@@ -6,26 +6,32 @@ Identificar os subdomínios do projeto, classificá-los (Core, Supporting, Gener
 ---
 
 ## 1. Nome do Projeto
-**[Escreva o nome do sistema ou aplicação que está sendo modelado]**
+**Plataforma de Detecção Precoce e Monitoramento de Risco para Doença Renal Crônica**
 
 ---
 
 ## 2. Objetivo Principal do Projeto
-**[Explique o propósito do sistema em uma ou duas frases]**  
-*Exemplo:* Facilitar o agendamento de consultas médicas online entre pacientes e médicos.
+Detectar precocemente risco de DRC e apoiar o acompanhamento longitudinal de pacientes na atenção básica, integrando dados clínicos e laboratoriais para priorizar triagem, disparar alertas e coordenar encaminhamentos antes de evolução para terapia renal substitutiva.
 
 ---
 
 ## 3. Identificação dos Subdomínios
-Liste os subdomínios do sistema e classifique-os como **Core Domain**, **Supporting Subdomain** ou **Generic Subdomain**.
 
-| **Subdomínio**              | **Descrição**                                                                                      | **Tipo**         |
-|-----------------------------|--------------------------------------------------------------------------------------------------|------------------|
-| Ex.: Gestão de Consultas    | Gerencia o agendamento, consulta por vídeo e emissão de atestados e receitas.                   | Core Domain      |
-| Ex.: Cadastro de Usuários   | Gerencia o login, cadastro e permissões dos médicos e pacientes.                                | Supporting       |
-| Ex.: Pagamentos             | Processa pagamentos e repassa valores para médicos.                                             | Generic          |
+| Subdomínio                                  | Descrição                                                                                                          | Tipo            |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | --------------- |
+| **Gestão de Risco & Triagem**               | Calcula risco de DRC, identifica população elegível para rastreio (TFG/eGFR, UACR, comorbidades) e prioriza casos. | Core Domain     |
+| **Modelos Preditivos de Progressão**        | Prediz progressão/agravamento (queda de TFG, necessidade de nefro/diálise) e janela ótima de intervenção.          | Core Domain     |
+| **Orquestração de Rastreamento**            | Agenda janelas de rastreio, solicita exames (creatinina, EAS, UACR), acompanha pendências e resultados.            | Core Domain     |
+| **Gestão de Casos & Plano de Cuidado**      | Registra plano individual (metas, medicação, retornos), consolida alertas clínicos para equipe.                    | Supporting      |
+| **Integração com Laboratórios/EHR**         | Ingestão de exames e eventos clínicos (FHIR/HL7), conciliação de identidades.                                      | Supporting      |
+| **Cadastro, Consentimento & LGPD**          | Identificação de paciente/profissional, consentimento para uso de dados e trilhas de auditoria.                    | Supporting      |
+| **Notificações & Engajamento**              | Lembretes de coleta/consulta, nudges de adesão (SMS, app, WhatsApp, e-mail).                                       | Supporting      |
+| **Relatórios Epidemiológicos & KPIs**       | Métricas de cobertura de rastreio, tempo até diagnóstico, redução de estágio tardio, custos evitados.              | Supporting      |
+| **Terminologias & Catálogo Clínico**        | Mapas de códigos (LOINC, CID-10, SIGTAP), faixas de referência, regras de interpretação.                           | Generic         |
+| **Pagamentos/Autorização de Procedimentos** | Integração com regras locais (ex.: SIGTAP/SUS) para autorizar/registrar exames.                                    | Generic         |
+| **Identidade & Acesso**                     | Autenticação/autorização, perfis e RBAC.                                                                           | Generic         |
+| **Observabilidade & Plataforma**            | Logs, métricas, tracing, feature flags, CI/CD/MLops.                                                               | Generic         |
 
----
 
 ## 4. Desenho dos Bounded Contexts
 Liste e descreva os bounded contexts identificados no projeto. Explique a responsabilidade de cada um.
@@ -50,29 +56,44 @@ Explique como os bounded contexts vão se comunicar. Use os padrões de comunica
 ---
 
 ## 6. Definição da Linguagem Ubíqua
-Liste os termos principais da Linguagem Ubíqua do projeto. Explique brevemente cada termo.
 
-| **Termo**                    | **Descrição**                                                                                   |
-|------------------------------|-----------------------------------------------------------------------------------------------|
-| Ex.: Consulta                | Sessão médica entre paciente e médico.                                                       |
-| Ex.: Paciente                | Usuário que agenda e realiza consultas.                                                      |
-| Ex.: Receita                 | Prescrição médica gerada durante a consulta.                                                 |
+| Termo                         | Descrição                                                                           |
+| ----------------------------- | ----------------------------------------------------------------------------------- |
+| **Paciente**                  | Pessoa sob cuidado/monitoramento no programa de DRC.                                |
+| **População-Alvo**            | Conjunto elegível para rastreio (ex.: DM2, HAS, >60 anos).                          |
+| **Risco DRC**                 | Probabilidade estimada de ter DRC ou progredir de estágio.                          |
+| **TFG/eGFR**                  | Estimativa da taxa de filtração glomerular (ex.: CKD-EPI).                          |
+| **Albuminúria (UACR)**        | Relação albumina/creatinina urinária para estratificar risco.                       |
+| **Janela de Rastreamento**    | Período recomendado para coletar exames de triagem/controle.                        |
+| **Alerta Clínico**            | Sinal gerado por regra/modelo (ex.: “queda rápida de TFG”).                         |
+| **Caso Ativo**                | Paciente com plano de cuidado aberto e ações pendentes.                             |
+| **Plano de Cuidado**          | Conjunto de metas, exames, consultas e intervenções.                                |
+| **Encaminhamento Nefro**      | Direcionamento para especialista com critérios clínicos.                            |
+| **Adesão**                    | Cumprimento de exames, consultas e recomendações.                                   |
+| **Evento-Sentinela**          | Evento crítico (ex.: início de diálise, internação por IRA).                        |
+| **Regras de Estratificação**  | Lógica clínica (KDIGO) para classificar risco por TFG/UACR.                         |
+| **Interoperabilidade (FHIR)** | Troca de dados via recursos FHIR (Patient, Observation, Encounter, ServiceRequest). |
+| **KPIs de Programa**          | Cobertura de rastreio, tempo até diagnóstico, % estágio avançado evitado.           |
+
 
 ---
 
 ## 7. Estratégia de Desenvolvimento
-Para cada tipo de subdomínio, explique a abordagem para implementação:
-- **Core Domain:** Desenvolver internamente com foco total.
-- **Supporting Subdomain:** Desenvolver internamente ou parcialmente terceirizar.
-- **Generic Subdomain:** Usar ferramentas ou serviços de mercado.
 
-| **Subdomínio**              | **Estratégia**                         | **Ferramentas ou Serviços (se aplicável)** |
-|-----------------------------|---------------------------------------|-------------------------------------------|
-| Gestão de Consultas         | Desenvolvimento interno               |                                           |
-| Cadastro de Usuários        | Interno com uso de Auth0 para login   | Auth0                                     |
-| Pagamentos                  | Terceirizar usando API Stripe         | Stripe                                    |
-
----
+| Subdomínio                              | Estratégia                                       | Ferramentas ou Serviços (se aplicável)                               |
+| --------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------- |
+| **Gestão de Risco & Triagem (Core)**    | Desenvolvimento interno; regras clínicas + priorização; versionamento de regras. | Motor de regras (custom), feature store (Feast), persistência relacional. |
+| **Modelos Preditivos de Progressão (Core)** | Desenvolvimento interno com MLOps; explicabilidade e monitoramento de drift. | MLflow, Kubeflow/SageMaker/Vertex, SHAP, feature store, batch + online serving. |
+| **Orquestração de Rastreamento (Core)** | Desenvolvimento interno; orquestrador de tarefas, SLA de janelas, reconciliação de exames. | Orquestrador (Temporal/Camunda), filas (Kafka/RabbitMQ). |
+| **Gestão de Casos & Plano de Cuidado (Supporting)** | Interno com co-criação com equipes clínicas; UX centrada no fluxo do cuidado. | App web (React), backend (Spring Boot/.NET), GraphQL/REST. |
+| **Integração com Laboratórios/EHR (Supporting)** | Interno ou parceria; conectores padronizados FHIR/HL7; reprocessamento idempotente. | HAPI FHIR Server, Mirth/NextGen Connect, ETL (Airbyte/Dbt). |
+| **Cadastro, Consentimento & LGPD (Supporting)** | Interno com padrões de privacidade por design; auditoria e trilhas. | Keycloak/Auth0, vault de segredos (HashiCorp Vault), audit logs. |
+| **Notificações & Engajamento (Supporting)** | Parcialmente terceirizado; multicanal com template e reenvio. | Twilio/Infobip/FCM/WhatsApp Business API. |
+| **Relatórios Epidemiológicos & KPIs (Supporting)** | Composição: lake/warehouse + BI; camadas semânticas e métricas validadas. | Data Lake/Warehouse (BigQuery/Redshift), Metabase/Superset/Power BI. |
+| **Terminologias & Catálogo Clínico (Generic)** | Adotar de mercado; manter mapeamentos atualizados. | LOINC, CID-10, SIGTAP; dicionário via FHIR `CodeSystem/ValueSet`. |
+| **Pagamentos/Autorização de Procedimentos (Generic)** | Usar serviços existentes; integração com fluxos SUS/privados. | Integração SIGTAP/SUS local, conectores/ETL. |
+| **Identidade & Acesso (Generic)**       | SaaS/IdP com RBAC/ABAC e MFA.                    | Keycloak/Auth0/Okta. |
+| **Observabilidade & Plataforma (Generic)** | Padrões de plataforma; IaC; SRE.                 | Prometheus/Grafana, OpenTelemetry, ELK/CloudWatch, Terraform/ArgoCD. |
 
 ## 8. Diagrama Visual (Opcional, mas Recomendado)
 Desenhe um diagrama que mostre:
