@@ -32,26 +32,42 @@ Detectar precocemente risco de DRC e apoiar o acompanhamento longitudinal de pac
 | **Identidade & Acesso**                     | Autenticação/autorização, perfis e RBAC.                                                                           | Generic         |
 | **Observabilidade & Plataforma**            | Logs, métricas, tracing, feature flags, CI/CD/MLops.                                                               | Generic         |
 
+---
 
 ## 4. Desenho dos Bounded Contexts
-Liste e descreva os bounded contexts identificados no projeto. Explique a responsabilidade de cada um.
 
-| **Bounded Context**           | **Responsabilidade**                                                                                 | **Subdomínios Relacionados** |
-|-------------------------------|-----------------------------------------------------------------------------------------------------|-----------------------------|
-| Ex.: Contexto de Consultas    | Gerencia as consultas médicas, do agendamento à finalização, incluindo emissão de receitas.         | Gestão de Consultas         |
-| Ex.: Contexto de Pagamentos   | Processa cobranças de consultas e repasses para médicos ou clínicas.                              | Pagamentos                  |
+| **Bounded Context**                | **Responsabilidade**                                                                                       | **Subdomínios Relacionados**                  |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| **Contexto de Risco e Triagem**    | Centraliza a lógica de cálculo de risco de DRC e prioriza pacientes que precisam de investigação precoce.  | Gestão de Risco & Triagem                     |
+| **Contexto Preditivo**             | Treina, valida e serve modelos de progressão da DRC, apoiando decisões de encaminhamento antecipado.       | Modelos Preditivos de Progressão              |
+| **Contexto de Rastreamento**       | Agenda e controla a execução de exames periódicos (creatinina, EAS, UACR) e garante janelas de rastreio.   | Orquestração de Rastreamento                  |
+| **Contexto de Casos Clínicos**     | Mantém o plano individual do paciente, metas de cuidado, alertas e acompanhamento clínico pela equipe.     | Gestão de Casos & Plano de Cuidado            |
+| **Contexto de Integração Clínica** | Concilia dados de diferentes laboratórios e EHRs, normaliza terminologias (LOINC, CID) e garante fluxo.   | Integração com Laboratórios/EHR, Terminologias|
+| **Contexto de Cadastro & LGPD**    | Administra identidade de pacientes/profissionais, consentimentos e trilhas de auditoria conforme LGPD.    | Cadastro, Consentimento & LGPD, Identidade & Acesso |
+| **Contexto de Engajamento**        | Gera notificações multicanal (SMS, WhatsApp, e-mail, push) para lembrar exames, consultas e adesão.       | Notificações & Engajamento                    |
+| **Contexto de Relatórios**         | Fornece dashboards e KPIs epidemiológicos para gestores e órgãos de saúde pública.                        | Relatórios Epidemiológicos & KPIs             |
+| **Contexto de Plataforma**         | Suporte técnico, observabilidade, CI/CD, logs, monitoramento e infraestrutura compartilhada.               | Observabilidade & Plataforma                  |
+| **Contexto de Procedimentos SUS**  | Integra com fluxos de autorização e cobrança de procedimentos (ex.: SIGTAP, SIA/SUS).                      | Pagamentos/Autorização de Procedimentos       |
 
 ---
 
 ## 5. Comunicação entre os Bounded Contexts
-Explique como os bounded contexts vão se comunicar. Use os padrões de comunicação, como:
-- **Mensageria/Eventos (desacoplado):** Ex.: O Contexto de Consultas emite um evento "Consulta Finalizada", consumido pelo Contexto de Pagamentos.
-- **APIs (síncrono):** Ex.: O Contexto de Pagamentos consulta informações de preços no Contexto de Consultas.
 
-| **De (Origem)**              | **Para (Destino)**          | **Forma de Comunicação**    | **Exemplo de Evento/Chamada**                  |
-|------------------------------|-----------------------------|-----------------------------|-----------------------------------------------|
-| Contexto de Consultas        | Contexto de Pagamentos      | Mensageria (Evento)         | "Consulta Finalizada"                         |
-| Contexto de Cadastro          | Contexto de Consultas      | API                         | Obter informações de um Paciente pelo ID      |
+| **De (Origem)**                 | **Para (Destino)**          | **Forma de Comunicação**    | **Exemplo de Evento/Chamada**                                       |
+| -------------------------------- | --------------------------- | --------------------------- | ------------------------------------------------------------------- |
+| Contexto de Risco e Triagem      | Contexto de Rastreamento    | Mensageria (Evento)         | Evento: `PacienteIdentificadoAltoRisco` para disparar solicitação de exames |
+| Contexto de Rastreamento         | Contexto de Casos Clínicos  | Mensageria (Evento)         | Evento: `ExameRealizado` atualiza plano de cuidado                   |
+| Contexto Preditivo               | Contexto de Casos Clínicos  | API (síncrono)              | Chamada: `GET /score-risco/{pacienteId}` para incluir score no plano |
+| Contexto de Casos Clínicos       | Contexto de Engajamento     | Mensageria (Evento)         | Evento: `AlertaClinicoGerado` dispara lembrete ao paciente           |
+| Contexto de Integração Clínica   | Contexto de Rastreamento    | API (síncrono)              | Chamada: `GET /exames/{pacienteId}` retorna resultados normalizados  |
+| Contexto de Integração Clínica   | Contexto Preditivo          | Batch/Mensageria            | Envio periódico de features derivadas de exames para reprocessamento |
+| Contexto de Cadastro & LGPD      | Todos os demais             | API (síncrono)              | Chamada: `GET /paciente/{id}` com garantias de consentimento e LGPD  |
+| Contexto de Relatórios           | Contexto de Plataforma      | API / Pipeline ETL          | Chamada: consulta de logs, métricas e eventos para geração de KPIs   |
+| Contexto de Procedimentos SUS    | Contexto de Rastreamento    | API (síncrono)              | Chamada: validação de autorização de exame junto ao SUS              |
+
+- **Eventos assíncronos (Kafka/RabbitMQ)** garantem baixo acoplamento entre os bounded contexts principais (ex.: risco → rastreamento → casos).
+- **APIs síncronas (REST/GraphQL)** são usadas quando há necessidade de resposta imediata (ex.: consultar score de risco, buscar cadastro).
+- **Batch/Pipelines** apoiam a alimentação de modelos preditivos e relatórios epidemiológicos.
 
 ---
 
