@@ -112,12 +112,8 @@ Detectar precocemente risco de DRC e apoiar o acompanhamento longitudinal de pac
 | **Observabilidade & Plataforma (Generic)** | Padrões de plataforma; IaC; SRE.                 | Prometheus/Grafana, OpenTelemetry, ELK/CloudWatch, Terraform/ArgoCD. |
 
 ## 8. Diagrama Visual (Opcional, mas Recomendado)
-Desenhe um diagrama que mostre:
-- Os bounded contexts.
-- Como eles se comunicam.
-- A relação com os subdomínios.
 
-Use ferramentas como **Miro**, **Lucidchart** ou mesmo papel e caneta para criar seu diagrama e adicionar ao projeto.
+[Abrir documento no Google Drive](https://drive.google.com/file/d/1SlnXsf1FBGApyUSL1RKuAJgb0jxRGdFQ/view?usp=sharing)
 
 ---
 
